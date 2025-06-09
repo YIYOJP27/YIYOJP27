@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calculadora de Beneficios</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #e0e7ff, #c3dafe);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+    }
+    main {
+      max-width: 640px;
+      width: 100%;
+      margin: 2rem;
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    main:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+    section {
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    section.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    h2 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin: 0.75rem 0 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #374151;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    p {
+      font-size: 1rem;
+      color: #374151;
+      margin: 0.5rem 0;
+    }
+    #totalDesc {
+      color: #1e40af;
+      font-size: 1.125rem;
+    }
+    .custom-btn {
+      padding: 0.5em 1.1em;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+      transition: .4s ease-in-out;
+      background-color: #252525;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 0.5rem 0.25rem;
+    }
+    .custom-btn:hover {
+      background-color: black;
+    }
+    .custom-btn.cancel, .custom-btn.logout, .custom-btn.delete {
+      background-color: #252525;
+    }
+    .custom-btn.cancel:hover, .custom-btn.logout:hover, .custom-btn.delete:hover {
+      background-color: red;
+    }
+    #loader {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    .pencil {
+      display: block;
+      width: 10em;
+      height: 10em;
+      margin: 0 auto;
+    }
+    .pencil__body1,
+    .pencil__body2,
+    .pencil__body3,
+    .pencil__eraser,
+    .pencil__eraser-skew,
+    .pencil__point,
+    .pencil__rotate,
+    .pencil__stroke {
+      animation-duration: 3s;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+    .pencil__body1,
+    .pencil__body2,
+    .pencil__body3 {
+      transform: rotate(-90deg);
+    }
+    .pencil__body1 {
+      animation-name: pencilBody1;
+    }
+    .pencil__body2 {
+      animation-name: pencilBody2;
+    }
+    .pencil__body3 {
+      animation-name: pencilBody3;
+    }
+    .pencil__eraser {
+      animation-name: pencilEraser;
+      transform: rotate(-90deg) translate(49px,0);
+    }
+    .pencil__eraser-skew {
+      animation-name: pencilEraserSkew;
+      animation-timing-function: ease-in-out;
+    }
+    .pencil__point {
+      animation-name: pencilPoint;
+      transform: rotate(-90deg) translate(49px,-30px);
+    }
+    .pencil__rotate {
+      animation-name: pencilRotate;
+    }
+    .pencil__stroke {
+      animation-name: pencilStroke;
+      transform: translate(100px,100px) rotate(-113deg);
+    }
+    @keyframes pencilBody1 {
+      from, to {
+        stroke-dashoffset: 351.86;
+        transform: rotate(-90deg);
+      }
+      50% {
+        stroke-dashoffset: 150.8;
+        transform: rotate(-225deg);
+      }
+    }
+    @keyframes pencilBody2 {
+      from, to {
+        stroke-dashoffset: 406.84;
+        transform: rotate(-90deg);
+      }
+      50% {
+        stroke-dashoffset: 174.36;
+        transform: rotate(-225deg);
+      }
+    }
+    @keyframes pencilBody3 {
+      from, to {
+        stroke-dashoffset: 296.88;
+        transform: rotate(-90deg);
+      }
+      50% {
+        stroke-dashoffset: 127.23;
+        transform: rotate(-225deg);
+      }
+    }
+    @keyframes pencilEraser {
+      from, to {
+        transform: rotate(-45deg) translate(49px,0);
+      }
+      50% {
+        transform: rotate(0deg) translate(49px,0);
+      }
+    }
+    @keyframes pencilEraserSkew {
+      from, 0%, 0%, 0.5%, 1px, to {
+        transform: none;
+    }
+    }
+    @keyframes pencilPoint {
+      from, to {
+        transform: rotate(-90deg) translate(49px, -30px);
+      }
+      50% {
+        transform: rotate(-225deg) translate(49px, -30px);
+      }
+    }
+    @keyframes pencilRotate {
+      from {
+        transform: translate(100px, 100px) rotate(0);
+      }
+      to {
+        transform: translate(100px, 100px) rotate(720deg);
+      }
+    }
+    @keyframes pencilStroke {
+      from {
+        stroke-dashoffset: 439.82;
+        transform: translate(100px, 100px) rotate(-113deg);
+      }
+      50% {
+        stroke-dashoffset: 164.93;
+        transform: translate(100px, 100px) rotate(-113deg);
+      }
+      75%,
+      to {
+        stroke-dashoffset: 439.82;
+        transform: translate(100px, 100px) rotate(112deg);
+      }
+    }
+    /* Estilos del Login */
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-left: 2em;
+      padding-right: 2em;
+      padding-bottom: 2em;
+      background-color: #171717;
+      border-radius: 25px;
+      transition: 0.4s ease-in-out;
+    }
+    .card {
+      background-image: linear-gradient(163deg, #00ff75 0%, #3700ff 100%);
+      border-radius: 22px;
+      transition: all 0.3s;
+    }
+    .card2 {
+      border-radius: 0;
+      transition: all 0.2s;
+    }
+    .card2:hover {
+      transform: scale(0.98);
+      border-radius: 20px;
+    }
+    .card:hover {
+      box-shadow: 0px 0px 30px 1px rgba(0, 255, 117, 0.3);
+    }
+    #heading {
+      text-align: center;
+      margin: 2em;
+      color: rgb(255, 255, 255);
+      font-size: 1.2em;
+    }
+    .field {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5em;
+      border-radius: 25px;
+      padding: 0.6em;
+      border: none;
+      outline: none;
+      color: white;
+      background-color: #171717;
+      box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
+    }
+    .input-icon {
+      height: 1.3em;
+      width: 1.3em;
+      fill: white;
+    }
+    .input-field {
+      background: none;
+      border: none;
+      outline: none;
+      width: 100%;
+      color: #d3d3d3;
+    }
+    .form .btn {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.5em;
+      margin-top: 2.5em;
+    }
+    .button1,
+    .button2 {
+      padding: 0.5em 2em;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+      transition: 0.4s ease-in-out;
+      background-color: #252525;
+      color: white;
+    }
+    .button1:hover,
+    .button2:hover {
+      background-color: black;
+      color: white;
+    }
+    .button3 {
+      padding: 0.5em;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+      transition: 0.4s ease-in-out;
+      background-color: #252525;
+      color: white;
+      width: calc(100% - 9em);
+      margin: 0.5em 0;
+    }
+    .button3:hover {
+      background-color: red;
+      color: white;
+    }
+    #aspirantModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    #aspirantModal.hidden {
+      display: none;
+    }
+    #aspirantModal.show {
+      opacity: 1;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      text-align: left;
+      animation: bounceIn 0.5s ease;
+    }
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 1rem;
+    }
+    .modal-message {
+      font-size: 1rem;
+      color: #374151;
+      margin-bottom: 1.5rem;
+    }
+    @keyframes bounceIn {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+      60% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 0.75rem;
+      text-align: left;
+    }
+    th {
+      background-color: #f3f4f6;
+      font-weight: 600;
+    }
+    td a {
+      color: #3b82f6;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    td a:hover {
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <section id="lobby" class="active">
+    <h2>Bienvenido a la Calculadora de Beneficios</h2>
+    <div class="flex justify-center gap-4">
+      <button class="custom-btn" onclick="showLoader('registro')">Aspirante</button>
+      <button class="custom-btn" onclick="showLoader('login')">Administrador</button>
+    </div>
+  </section>
+
+  <section id="registro">
+    <h2>Registro de Datos</h2>
+    <label for="nombre">Nombre completo:</label>
+    <input type="text" id="nombre" />
+    <label for="edad">Edad:</label>
+    <input type="number" id="edad" min="0" />
+    <label for="genero">Género:</label>
+    <select id="genero">
+      <option value="">Seleccione...</option>
+      <option value="M">Masculino</option>
+      <option value="F">Femenino</option>
+      <option value="O">Otro</option>
+    </select>
+    <label for="estrato">Estrato:</label>
+    <select id="estrato">
+      <option value="">Seleccione...</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+    </select>
+    <label for="zona">Zona:</label>
+    <select id="zona">
+      <option value="">Seleccione...</option>
+      <option value="Urbana">Urbana</option>
+      <option value="Rural">Rural</option>
+    </select>
+    <label for="estado">Estado laboral:</label>
+    <select id="estado">
+      <option value="">Seleccione...</option>
+      <option value="Empleado">Empleado</option>
+      <option value="Desempleado">Desempleado</option>
+      <option value="Estudiante">Estudiante</option>
+      <option value="Independiente">Independiente</option>
+    </select>
+    <label for="programa">Programa académico:</label>
+    <input type="text" id="programa" />
+    <label for="valor">Valor matrícula:</label>
+    <input type="number" id="valor" min="0" step="0.01" />
+    <button class="custom-btn" onclick="mostrarResultados()">Calcular Beneficios</button>
+  </section>
+
+  <section id="resultados">
+    <h2>Resultados</h2>
+    <p id="r1"></p>
+    <p id="r2"></p>
+    <p id="r3"></p>
+    <p id="r4"></p>
+    <p id="r5"></p>
+    <p id="r6"></p>
+    <p id="totalDesc" style="font-weight: bold;"></p>
+    <p id="totalPagar" style="font-weight: bold; color: #10b981;"></p>
+    <div class="flex justify-center gap-4">
+      <button class="custom-btn" onclick="checkContactBeforeLobby()">Volver a Inicio</button>
+      <button class="custom-btn" id="btnContacto" onclick="showLoader('contacto')">Contacto</button>
+      <button class="custom-btn" onclick="showLoader('registro')">Formulario</button>
+    </div>
+    <form id="formContacto" style="display: none;">
+      <h3 class="text-lg font-semibold text-gray-700 mb-4">Formulario de Contacto</h3>
+      <label for="email">Correo:</label>
+      <input type="email" id="email" required />
+      <label for="telefono">Teléfono:</label>
+      <input type="tel" id="telefono" pattern="[0-9]{7,10}" required />
+      <button class="custom-btn" type="submit">Enviar</button>
+    </form>
+  </section>
+
+  <section id="login">
+    <div class="card">
+      <div class="card2">
+        <form class="form">
+          <p id="heading">Iniciar Sesión - Administrador</p>
+          <div class="field">
+            <svg class="input-icon" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M12 4a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4z"/>
+            </svg>
+            <input type="text" class="input-field" id="username" placeholder="Usuario" required />
+          </div>
+          <div class="field">
+            <svg class="input-icon" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M12 17a2 2 0 0 0 2-2 2 2 0 0 0-2-2 2 2 0 0 0-2 2 2 2 0 0 0 2 2m6-8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2h1V7a5 5 0 0 1 5-5 5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V7a3 3 0 0 0-3-3z"/>
+            </svg>
+            <input type="password" class="input-field" id="password" placeholder="Contraseña" required />
+          </div>
+          <div class="btn">
+            <button class="button1" type="submit">Login</button>
+            <button class="button2" type="button" onclick="showLoader('registro')">Sign Up</button>
+            <button class="button3" type="button" onclick="showLoader('lobby')">Forgot Password</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section id="admin">
+    <h2>Bienvenido señor usuario</h2>
+    <h3 class="text-lg font-semibold text-gray-700 mb-4">Estas son las estadísticas de registros</h3>
+    <p id="s1"></p>
+    <p id="s2"></p>
+    <p id="s3"></p>
+    <p id="s4"></p>
+    <p id="s5"></p>
+    <p id="s6"></p>
+    <p id="s7"></p>
+    <p id="s8"></p>
+    <p id="s9"></p>
+    <p id="s10"></p>
+    <p id="s11"></p>
+    <p id="s12"></p>
+    <p id="s13"></p>
+    <p id="s14"></p>
+    <p id="s15"></p>
+    <div class="flex justify-center gap-4">
+      <button class="custom-btn" onclick="showLoader('aspirantes')">Datos de aspirantes</button>
+      <button class="custom-btn delete" onclick="borrarDatos()">Borrar Datos</button>
+      <button class="custom-btn logout" onclick="showLoader('lobby')">Cerrar sesión</button>
+    </div>
+  </section>
+
+  <section id="aspirantes">
+    <h2>Datos de Aspirantes</h2>
+    <table id="aspirantsTable">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button class="custom-btn" onclick="showLoader('admin')">Volver</button>
+  </section>
+
+  <div id="loader">
+    <svg class="pencil" viewBox="0 0 200 200" width="160px" height="160px" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="pencil-eraser">
+          <rect rx="5" ry="5" width="30" height="30" y="70" x="103"></rect>
+        </clipPath>
+      </defs>
+      <circle class="pencil__stroke" r="70" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="439.82 439.82" stroke-linecap="round"></circle>
+      <g class="pencil__rotate" transform="translate(100,100)">
+        <g fill="none">
+          <circle class="pencil__body1" r="56" stroke="#facc15" stroke-width="14" stroke-dasharray="351.86 351.86" stroke-linecap="round"></circle>
+          <circle class="pencil__body2" r="64" stroke="#facc15" stroke-width="14" stroke-dasharray="406.84 406.84" stroke-linecap="round"></circle>
+          <circle class="pencil__body3" r="48" stroke="#facc15" stroke-width="14" stroke-dasharray="296.88 296.88" stroke-linecap="round"></circle>
+        </g>
+        <g class="pencil__eraser" transform="rotate(-90) translate(49,0)">
+          <g class="pencil__eraser-skew">
+            <rect fill="#f87171" rx="5" ry="5" width="30" height="30" y="70" x="103"></rect>
+            <rect fill="#dc2626" clip-path="url(#pencil-eraser)" rx="5" ry="5" width="30" height="20" y="70" x="103"></rect>
+          </g>
+        </g>
+        <g class="pencil__point" transform="rotate(-90) translate(49,-30)">
+          <polygon fill="#4b5563" points="15 0, 30 30, 0 30"></polygon>
+          <polygon fill="#1f2937" points="15 0, 28 30, 15 30"></polygon>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <div id="aspirantModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 class="modal-title">Detalles del Aspirante</h3>
+      <div id="aspirantDetails" class="modal-message"></div>
+      <button class="custom-btn" onclick="closeAspirantModal()">Cerrar</button>
+    </div>
+  </div>
+</main>
+
+<script>
+// Inicializar variables
+let aspirantes = JSON.parse(localStorage.getItem('aspirantes')) || [];
+let stats = JSON.parse(localStorage.getItem('stats')) || {
+    totalMujeres: 0,
+    totalHombres: 0,
+    totalOtros: 0,
+    edadAlta: -Infinity,
+    edadBaja: Infinity,
+    sumaEdades: 0,
+    estrato1: 0,
+    estrato2: 0,
+    estrato3: 0,
+    rural: 0,
+    urbana: 0,
+    empleados: 0,
+    desempleados: 0,
+    estudiantes: 0,
+    independientes: 0,
+    valorMinimo: Infinity,
+    valorMaximo: -Infinity,
+    totalRegistros: 0,
+    sumaDescuentos: 0,
+    sumaMatriculas: 0,
+};
+let currentAspirante = null;
+let contactSubmitted = false;
+
+// Exponer funciones al ámbito global
+window.showLoader = function(sectionId) {
+    const loader = document.getElementById('loader');
+    if (loader) {
+        loader.style.display = 'flex';
+        setTimeout(() => {
+            loader.style.display = 'none';
+            switchSection(sectionId);
+        }, 1500);
+    }
+};
+
+window.mostrarResultados = function() {
+    const nombre = document.getElementById('nombre')?.value.trim();
+    const edad = parseInt(document.getElementById('edad')?.value);
+    const genero = document.getElementById('genero')?.value;
+    const estrato = parseInt(document.getElementById('estrato')?.value);
+    const zona = document.getElementById('zona')?.value;
+    const estado = document.getElementById('estado')?.value;
+    const programa = document.getElementById('programa')?.value.trim();
+    const valor = parseFloat(document.getElementById('valor')?.value);
+
+    if (!nombre || isNaN(edad) || !genero || isNaN(estrato) || !zona || !estado || !programa || isNaN(valor)) {
+        alert('Por favor, completa todos los campos correctamente.');
+        return;
+    }
+
+    let descuentoEstrato = 0;
+    let descuentoSexo = 0;
+    let descuentoEducacion = 0;
+    let descuentoPrograma = 0;
+    let bonoAlimentacion = 0;
+    let tiqueteraTransporte = false;
+
+    if (estrato === 1 && zona === 'Rural') {
+        descuentoEstrato = valor * 0.25;
+    } else if (estrato === 2) {
+        descuentoEstrato = valor * 0.30;
+    } else if (estrato === 3) {
+        descuentoEstrato = valor * 0.20;
+    }
+
+    if (genero === 'F' && edad < 45) {
+        descuentoSexo = valor * 0.15;
+    } else {
+        descuentoSexo = valor * 0.07;
+    }
+
+    if (estado === 'Desempleado') {
+        descuentoEducacion = valor * 0.07;
+    }
+
+    if (programa.toLowerCase().includes('ingeniería')) {
+        descuentoPrograma = valor * 0.15;
+    }
+
+    if (zona === 'Rural' && edad < 30) {
+        bonoAlimentacion = 190000;
+    } else {
+        bonoAlimentacion = 95500;
+    }
+
+    tiqueteraTransporte = estado === 'Desempleado';
+
+    let totalDescuento = descuentoEstrato + descuentoSexo + descuentoEducacion + descuentoPrograma;
+    let totalPagar = Math.max(0, valor - totalDescuento - bonoAlimentacion);
+
+    document.getElementById('r1').textContent = `Descuento por estrato y zona: $${Math.round(descuentoEstrato)}`;
+    document.getElementById('r2').textContent = `Descuento por sexo y edad: $${Math.round(descuentoSexo)}`;
+    document.getElementById('r3').textContent = `Auxilio de educación: $${Math.round(descuentoEducacion)}`;
+    document.getElementById('r4').textContent = `Descuento especial programa académico: $${Math.round(descuentoPrograma)}`;
+    document.getElementById('r5').textContent = `Bono de alimentación: $${Math.round(bonoAlimentacion)}`;
+    document.getElementById('r6').textContent = `Tiquetera de transporte: ${tiqueteraTransporte ? 'Sí' : 'No'}`;
+    document.getElementById('totalDesc').textContent = `Total descuento aplicado: $${Math.round(totalDescuento)}`;
+    document.getElementById('totalPagar').textContent = `Total a pagar: $${Math.round(totalPagar)}`;
+
+    currentAspirante = { nombre, edad, genero, estrato, zona, estado, programa, valor, totalDescuento, totalPagar };
+    contactSubmitted = false;
+
+    showLoader('resultados');
+};
+
+window.checkContactBeforeLobby = function() {
+    if (!contactSubmitted) {
+        alert('Por favor, completa el formulario de contacto antes de volver al inicio.');
+        showLoader('contacto');
+    } else {
+        resetForm();
+        showLoader('lobby');
+    }
+};
+
+window.closeAspirantModal = function() {
+    const modal = document.getElementById('aspirantModal');
+    if (modal) {
+        modal.classList.remove('show');
+        modal.classList.add('hidden');
+    }
+};
+
+window.borrarDatos = function() {
+    if (!confirm('¿Estás seguro de que deseas borrar todos los datos registrados? Esta acción no se puede deshacer.')) {
+        return;
+    }
+
+    localStorage.removeItem('aspirantes');
+    localStorage.removeItem('stats');
+
+    aspirantes = [];
+    stats = {
+        totalMujeres: 0,
+        totalHombres: 0,
+        totalOtros: 0,
+        edadAlta: -Infinity,
+        edadBaja: Infinity,
+        sumaEdades: 0,
+        estrato1: 0,
+        estrato2: 0,
+        estrato3: 0,
+        rural: 0,
+        urbana: 0,
+        empleados: 0,
+        desempleados: 0,
+        estudiantes: 0,
+        independientes: 0,
+        valorMinimo: Infinity,
+        valorMaximo: -Infinity,
+        totalRegistros: 0,
+        sumaDescuentos: 0,
+        sumaMatriculas: 0
+    };
+
+    mostrarEstadísticas();
+    mostrarAspirantes();
+
+    alert('Todos los datos han sido borrados correctamente.');
+};
+
+function switchSection(sectionId) {
+    const sections = ['lobby', 'registro', 'resultados', 'login', 'admin', 'aspirantes'];
+    sections.forEach(id => {
+        const section = document.getElementById(id);
+        if (section) {
+            section.classList.toggle('active', id === sectionId);
+        }
+    });
+    if (sectionId === 'contacto') {
+        const formContacto = document.getElementById('formContacto');
+        const btnContacto = document.getElementById('btnContacto');
+        if (formContacto && btnContacto) {
+            formContacto.style.display = 'block';
+            btnContacto.style.display = 'none';
+        }
+    } else if (sectionId === 'aspirantes') {
+        mostrarAspirantes();
+    }
+}
+
+function resetForm() {
+    const fields = ['nombre', 'edad', 'genero', 'estrato', 'zona', 'estado', 'programa', 'valor'];
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            if (el.type === 'number' || el.type === 'text') el.value = '';
+            else if (el.tagName === 'SELECT') el.value = '';
+        }
+    });
+    const resultFields = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'totalDesc', 'totalPagar'];
+    resultFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.textContent = '';
+        }
+    });
+    currentAspirante = null;
+    contactSubmitted = false;
+}
+
+function mostrarEstadísticas() {
+    const total = stats.totalRegistros || 1;
+    const porcMujeres = Math.round((stats.totalMujeres * 100.0) / total);
+    const porcHombres = Math.round((stats.totalHombres * 100.0) / total);
+    const porcRural = Math.round((stats.rural * 100.0) / total);
+    const porcUrbana = Math.round((stats.urbana * 100.0) / total);
+    const porcDesempleados = Math.round((stats.desempleados * 100.0) / total);
+    const promedioEdad = stats.totalRegistros ? Math.round(stats.sumaEdades / stats.totalRegistros) : 0;
+
+    const statsFields = [
+        { id: 's1', text: `Total mujeres: ${stats.totalMujeres}` },
+        { id: 's2', text: `Total hombres: ${stats.totalHombres}` },
+        { id: 's3', text: `Porcentaje mujeres: ${porcMujeres}%` },
+        { id: 's4', text: `Porcentaje hombres: ${porcHombres}%` },
+        { id: 's5', text: `Edad máxima: ${stats.edadAlta === -Infinity ? 0 : stats.edadAlta}` },
+        { id: 's6', text: `Edad mínima: ${stats.edadBaja === Infinity ? 0 : stats.edadBaja}` },
+        { id: 's7', text: `Edad promedio: ${promedioEdad}` },
+        { id: 's8', text: `Aspirantes de estrato 1: ${stats.estrato1}` },
+        { id: 's9', text: `Aspirantes de estrato 2: ${stats.estrato2}` },
+        { id: 's10', text: `Aspirantes de estrato 3: ${stats.estrato3}` },
+        { id: 's11', text: `Aspirantes en zona rural: ${stats.rural}` },
+        { id: 's12', text: `Aspirantes en zona urbana: ${stats.urbana}` },
+        { id: 's13', text: `Porcentaje en zona rural: ${porcRural}%` },
+        { id: 's14', text: `Porcentaje en zona urbana: ${porcUrbana}%` },
+        { id: 's15', text: `Total desempleados: ${stats.desempleados} (${porcDesempleados}%)` }
+    ];
+
+    statsFields.forEach(field => {
+        const el = document.getElementById(field.id);
+        if (el) {
+            el.textContent = field.text;
+        }
+    });
+}
+
+function mostrarAspirantes() {
+    const tbody = document.querySelector('#aspirantsTable tbody');
+    if (tbody) {
+        tbody.innerHTML = '';
+        aspirantes.forEach((aspirante, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><a onclick="showAspirantDetails(${index})">${aspirante.nombre}</a></td>
+                <td>${aspirante.telefono || 'No registrado'}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+}
+
+function showAspirantDetails(index) {
+    const aspirante = aspirantes[index];
+    if (!aspirante) return;
+
+    const details = document.getElementById('aspirantDetails');
+    if (details) {
+        details.innerHTML = `
+            <p><strong>Nombre:</strong> ${aspirante.nombre}</p>
+            <p><strong>Edad:</strong> ${aspirante.edad}</p>
+            <p><strong>Género:</strong> ${aspirante.genero === 'F' ? 'Femenino' : aspirante.genero === 'M' ? 'Masculino' : 'Otro'}</p>
+            <p><strong>Estrato:</strong> ${aspirante.estrato}</p>
+            <p><strong>Zona:</strong> ${aspirante.zona}</p>
+            <p><strong>Estado laboral:</strong> ${aspirante.estado}</p>
+            <p><strong>Programa:</strong> ${aspirante.programa}</p>
+            <p><strong>Valor matrícula:</strong> $${Math.round(aspirante.valor)}</p>
+            <p><strong>Total descuentos:</strong> $${Math.round(aspirante.totalDescuento)}</p>
+            <p><strong>Total a pagar:</strong> $${Math.round(aspirante.totalPagar)}</p>
+            <p><strong>Correo:</strong> ${aspirante.email || 'No registrado'}</p>
+            <p><strong>Teléfono:</strong> ${aspirante.telefono || 'No registrado'}</p>
+        `;
+    }
+
+    const modal = document.getElementById('aspirantModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('show');
+    }
+}
+
+function initEventListeners() {
+    const formContacto = document.getElementById('formContacto');
+    if (formContacto) {
+        formContacto.addEventListener('submit', handleContactSubmit);
+    }
+
+    const loginForm = document.querySelector('#login .form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLoginSubmit);
+    }
+}
+
+function handleContactSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById('email')?.value;
+    const telefono = document.getElementById('telefono')?.value;
+
+    if (currentAspirante) {
+        currentAspirante.email = email;
+        currentAspirante.telefono = telefono;
+        aspirantes.push(currentAspirante);
+        localStorage.setItem('aspirantes', JSON.stringify(aspirantes));
+
+        stats.totalRegistros++;
+        stats.sumaDescuentos += currentAspirante.totalDescuento;
+        stats.sumaMatriculas += currentAspirante.valor;
+
+        if (currentAspirante.genero === 'F') stats.totalMujeres++;
+        else if (currentAspirante.genero === 'M') stats.totalHombres++;
+        else stats.totalOtros++;
+
+        stats.edadAlta = Math.max(stats.edadAlta, currentAspirante.edad);
+        stats.edadBaja = Math.min(stats.edadBaja, currentAspirante.edad);
+        stats.sumaEdades += currentAspirante.edad;
+
+        if (currentAspirante.estrato === 1) stats.estrato1++;
+        else if (currentAspirante.estrato === 2) stats.estrato2++;
+        else if (currentAspirante.estrato === 3) stats.estrato3++;
+
+        if (currentAspirante.zona === 'Rural') stats.rural++;
+        else stats.urbana++;
+
+        if (currentAspirante.estado === 'Empleado') stats.empleados++;
+        else if (currentAspirante.estado === 'Desempleado') stats.desempleados++;
+        else if (currentAspirante.estado === 'Estudiante') stats.estudiantes++;
+        else if (currentAspirante.estado === 'Independiente') stats.independientes++;
+
+        stats.valorMinimo = Math.min(stats.valorMinimo, currentAspirante.totalPagar);
+        stats.valorMaximo = Math.max(stats.valorMaximo, currentAspirante.totalPagar);
+
+        localStorage.setItem('stats', JSON.stringify(stats));
+
+        contactSubmitted = true;
+        const formContacto = document.getElementById('formContacto');
+        const btnContacto = document.getElementById('btnContacto');
+        if (formContacto && btnContacto) {
+            formContacto.style.display = 'none';
+            btnContacto.style.display = 'inline-block';
+            formContacto.reset();
+        }
+        alert('Formulario de contacto enviado correctamente. Ahora puedes continuar.');
+    }
+}
+
+function handleLoginSubmit(e) {
+    e.preventDefault();
+    const username = document.getElementById('username')?.value;
+    const password = document.getElementById('password')?.value;
+
+    if (username === 'admin' && password === '12345') {
+        mostrarEstadísticas();
+        showLoader('admin');
+    } else {
+        alert('Usuario o contraseña incorrectos.');
+    }
+}
+
+initEventListeners();
+</script>
+</body>
+</html>
