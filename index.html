@@ -8,7 +8,7 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #e0e7ff, #c3dafe);
+      background: linear-gradient(135deg, #6ee7b7, #3b82f6);
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -39,6 +39,11 @@
       display: block;
       opacity: 1;
       transform: translateY(0);
+      animation: slideIn 0.5s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
     h2 {
       font-size: 1.875rem;
@@ -90,6 +95,7 @@
     }
     .custom-btn:hover {
       background-color: black;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
     .custom-btn.cancel, .custom-btn.logout, .custom-btn.delete {
       background-color: #252525;
@@ -309,7 +315,7 @@
       display: flex;
       justify-content: center;
       flex-direction: row;
-      gap: 1rem; /* Espacio entre botones */
+      gap: 1rem;
       margin-top: 2.5em;
     }
     .button1 {
@@ -448,7 +454,7 @@
   </section>
 
   <section id="registro">
-    <h2>Registro de Datos</h2>
+    <h2>Registro de Datos <svg class="inline w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H6c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h12c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1z"/></svg></h2>
     <label for="nombre">Nombre completo:</label>
     <input type="text" id="nombre" />
     <label for="edad">Edad:</label>
@@ -492,7 +498,7 @@
   </section>
 
   <section id="resultados">
-    <h2>Resultados</h2>
+    <h2>Resultados <svg class="inline w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg></h2>
     <p id="r1"></p>
     <p id="r2"></p>
     <p id="r3"></p>
@@ -769,7 +775,12 @@
     if (modal) {
       modal.classList.remove('show');
       modal.classList.add('hidden');
-      showLoader('lobby'); // Regresar a inicio después de aceptar
+      showLoader('lobby');
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
     }
   };
 
@@ -912,10 +923,10 @@
         <p><strong>Estado laboral:</strong> ${aspirante.estado}</p>
         <p><strong>Programa:</strong> ${aspirante.programa}</p>
         <p><strong>Valor matrícula:</strong> $${Math.round(aspirante.valor)}</p>
-        <p><strong>Descuento por estrato y zona:</strong> $${Math.round(aspirante.totalDescuento * 0.25)}</p> <!-- Ejemplo proporcional -->
-        <p><strong>Descuento por sexo y edad:</strong> $${Math.round(aspirante.totalDescuento * 0.15)}</p> <!-- Ejemplo proporcional -->
-        <p><strong>Auxilio de educación:</strong> $${Math.round(aspirante.totalDescuento * 0.07)}</p> <!-- Ejemplo proporcional -->
-        <p><strong>Descuento especial programa:</strong> $${Math.round(aspirante.totalDescuento * 0.15)}</p> <!-- Ejemplo proporcional -->
+        <p><strong>Descuento por estrato y zona:</strong> $${Math.round(aspirante.totalDescuento * 0.25)}</p>
+        <p><strong>Descuento por sexo y edad:</strong> $${Math.round(aspirante.totalDescuento * 0.15)}</p>
+        <p><strong>Auxilio de educación:</strong> $${Math.round(aspirante.totalDescuento * 0.07)}</p>
+        <p><strong>Descuento especial programa:</strong> $${Math.round(aspirante.totalDescuento * 0.15)}</p>
         <p><strong>Total descuento aplicado:</strong> $${Math.round(aspirante.totalDescuento)}</p>
         <p><strong>Total a pagar:</strong> $${Math.round(aspirante.totalPagar)}</p>
         <p><strong>Correo:</strong> ${aspirante.email || 'No registrado'}</p>
@@ -982,6 +993,8 @@
 
       localStorage.setItem('stats', JSON.stringify(stats));
 
+      mostrarAspirantes(); // Actualizar tabla inmediatamente
+
       // Mostrar loader durante 1.5 segundos
       const loader = document.getElementById('loader');
       if (loader) {
@@ -994,7 +1007,7 @@
             confirmationModal.classList.remove('hidden');
             confirmationModal.classList.add('show');
           }
-        }, 1500); // Loader por 1.5 segundos
+        }, 1500);
       }
     }
   }
@@ -1014,7 +1027,8 @@
 
   initEventListeners();
   mostrarEstadísticas();
-  mostrarAspirantes();
+  mostrarAspirantes(); // Mostrar aspirantes al cargar
 </script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </body>
 </html>
